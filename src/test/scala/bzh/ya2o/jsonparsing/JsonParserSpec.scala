@@ -6,7 +6,7 @@ import org.scalatest.{ FlatSpec, Matchers }
 
 class JsonParserSpec extends FlatSpec with Matchers {
 
-  "trt" should "strstrstrstr" in {
+  "the JSON parser" should "unmarshall a JSON string" in {
     val inputJsonString =
       """{
         |   "a": "aaa",
@@ -17,7 +17,9 @@ class JsonParserSpec extends FlatSpec with Matchers {
         |       "DAA",
         |       null,
         |       true,
-        |       false
+        |       false,
+        |       {},
+        |       []
         |     ],
         |     "db": {},
         |     "dc": []
@@ -37,13 +39,28 @@ class JsonParserSpec extends FlatSpec with Matchers {
             JsonString("DAA"),
             JsonNull,
             JsonBoolean(true),
-            JsonBoolean(false)
+            JsonBoolean(false),
+            JsonObj(Map()),
+            JsonArr(List())
           )),
           "db" -> JsonObj(Map()),
           "dc" -> JsonArr(List())))
     ))
 
-    jsonOpt.get === expected
+    jsonOpt.get should === (expected)
   }
 
+  it should "marshall a POSO (Plain Old Scala Object)" in {
+    val poso = Poso("AA")
+    val poso2=for {
+      json <- JsonParser("""{"stuff": "AA"}""")
+      stuff <- json.getProperty[JsonString]("stuff")
+    } yield Poso(stuff.value)
+
+    poso2.get should === (poso)
+  }
+
+
+
 }
+  case class Poso(stuff: String)
